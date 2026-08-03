@@ -1,3 +1,5 @@
+from urllib import response
+
 import requests
 
 
@@ -9,13 +11,26 @@ def get_username():
 def fetch_github_profile(username):
     """Fetch GitHub profile data using the GitHub API."""
     url = f"https://api.github.com/users/{username}"
-    response = requests.get(url)
-    return response
+    
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response
+        elif response.status_code == 404:
+            print("❌ User not found.")
+            return None
+        else:
+            print(f"❌ Error: Received status code {response.status_code}")
+            return None
+            
+    except requests.exceptions.RequestException:
+        print("❌ No Internet Connection or Network Error:")
+        return None
 
 
 def display_profile(response):
     """Display GitHub profile information."""
-    if response.status_code == 200:
+    if response is not None:
         profile_data = response.json()
 
         print("\n===== GitHub Profile =====")
@@ -33,7 +48,9 @@ def display_profile(response):
 def main():
     username = get_username()
     response = fetch_github_profile(username)
-    display_profile(response)
+    if response is not None:
+        display_profile(response)
+    
 
 
 if __name__ == "__main__":
